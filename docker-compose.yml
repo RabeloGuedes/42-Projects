@@ -1,0 +1,7 @@
+services:
+  linux:
+    image: ubuntu:latest
+    container_name: linux
+    command: bash -c "apt update -y && apt upgrade -y && apt-get install build-essential -y; sleep infinity"
+    volumes:
+      - ./:/app
