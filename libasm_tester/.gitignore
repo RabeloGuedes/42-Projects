@@ -1,0 +1,18 @@
+# Compiled files
+*.o
+*.a
+libasm_tester
+
+# Cache files
+.libasm_path
+
+# Editor files
+.vscode/
+.DS_Store
+*~
+*.swp
+*.swo
+
+# Backup files
+*_backup
+*.bak
