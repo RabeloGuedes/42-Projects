@@ -15,7 +15,7 @@ OBJS = $(SRCS:.c=.o)
 
 # Path to libasm project (will be prompted or provided)
 LIBASM_PATH_FILE = .libasm_path
-LIBASM_PATH = $(shell cat $(LIBASM_PATH_FILE) 2>/dev/null)
+LIBASM_PATH = $(shell cat $(LIBASM_PATH_FILE) 2>/dev/null | tr -d '\n')
 LIBASM_LIB = $(LIBASM_PATH)/libasm.a
 
 .PHONY: all clean fclean re test
@@ -35,20 +35,21 @@ $(NAME): $(OBJS)
 test:
 	@if [ ! -f $(LIBASM_PATH_FILE) ]; then \
 		read -p "Enter the absolute path to your libasm project: " path; \
-		echo $$path > $(LIBASM_PATH_FILE); \
+		echo -n "$$path" > $(LIBASM_PATH_FILE); \
 	fi
-	@echo "Using libasm from: $$(cat $(LIBASM_PATH_FILE))"
-	@echo "Building libasm..."
-	@$(MAKE) -C $(LIBASM_PATH) 2>&1
-	@if [ ! -f "$(LIBASM_LIB)" ]; then \
-		echo "Error: libasm.a not found at $(LIBASM_LIB)"; \
+	@LIBASM_PATH=$$(cat $(LIBASM_PATH_FILE) | tr -d '\n'); \
+	echo "Using libasm from: $$LIBASM_PATH"; \
+	echo "Building libasm..."; \
+	$(MAKE) -C "$$LIBASM_PATH" 2>&1; \
+	if [ ! -f "$$LIBASM_PATH/libasm.a" ]; then \
+		echo "Error: libasm.a not found at $$LIBASM_PATH/libasm.a"; \
 		exit 1; \
-	fi
-	@echo "Recompiling test suite with libasm..."
-	@$(MAKE) fclean_objs
-	@$(MAKE) CFLAGS="$(CFLAGS) -I$(LIBASM_PATH)" LDFLAGS="$(LIBASM_LIB)" test_with_lib
-	@echo ""
-	@./$(NAME) $(LIBASM_PATH)
+	fi; \
+	echo "Recompiling test suite with libasm..."; \
+	$(MAKE) fclean_objs; \
+	$(MAKE) CFLAGS="$(CFLAGS) -I$$LIBASM_PATH" LDFLAGS="$$LIBASM_PATH/libasm.a" test_with_lib; \
+	echo ""; \
+	./$(NAME) "$$LIBASM_PATH"
 
 test_with_lib: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) -o $(NAME)
