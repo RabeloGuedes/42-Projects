@@ -1,13 +1,6 @@
 #include "libtest.h"
 
 // Stub functions for tests not yet implemented
-void test_ft_strcpy(t_test_stats *stats)
-{
-	(void)stats;
-	print_header("Testing ft_strcpy");
-	printf("%s  Tests not yet implemented.%s\n\n", COLOR_YELLOW, COLOR_RESET);
-}
-
 void test_ft_strcmp(t_test_stats *stats)
 {
 	(void)stats;

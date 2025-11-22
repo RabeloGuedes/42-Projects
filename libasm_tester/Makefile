@@ -9,6 +9,7 @@ NAME = libasm_tester
 SRCS = main.c \
        test_framework.c \
        test_ft_strlen.c \
+       test_ft_strcpy.c \
        test_stubs.c
 
 OBJS = $(SRCS:.c=.o)
