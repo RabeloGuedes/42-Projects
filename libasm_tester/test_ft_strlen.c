@@ -1,4 +1,6 @@
 #include "libtest.h"
+#include <signal.h>
+#include <sys/wait.h>
 
 // External declaration - will be linked from libasm.a
 extern size_t ft_strlen(const char *s);
@@ -183,6 +185,63 @@ void test_ft_strlen(t_test_stats *stats)
 		stats->total++;
 		if (passed) stats->passed++;
 		else stats->failed++;
+	}
+	
+	// Test 11: NULL pointer (must segfault)
+	{
+		pid_t pid = fork();
+		
+		if (pid == 0)
+		{
+			// Child process - test ft_strlen with NULL
+			char *null_ptr = NULL;
+			volatile size_t result = ft_strlen(null_ptr);
+			(void)result;
+			// If we reach here, it didn't segfault (bad)
+			exit(0);
+		}
+		else if (pid > 0)
+		{
+			// Parent process - wait for child and check if it segfaulted
+			int status;
+			waitpid(pid, &status, 0);
+			
+			int ft_segfaulted = WIFSIGNALED(status) && WTERMSIG(status) == SIGSEGV;
+			
+			// Now test if libc strlen also segfaults
+			pid_t pid2 = fork();
+			if (pid2 == 0)
+			{
+				char *null_ptr = NULL;
+				volatile size_t result = strlen(null_ptr);
+				(void)result;
+				exit(0);
+			}
+			else if (pid2 > 0)
+			{
+				int status2;
+				waitpid(pid2, &status2, 0);
+				int libc_segfaulted = WIFSIGNALED(status2) && WTERMSIG(status2) == SIGSEGV;
+				
+				// Both should segfault
+				int passed = (ft_segfaulted && libc_segfaulted);
+				
+				char details[200];
+				if (!ft_segfaulted && libc_segfaulted)
+					snprintf(details, sizeof(details), "(ft_strlen did not segfault on NULL, but libc strlen did)");
+				else if (ft_segfaulted && !libc_segfaulted)
+					snprintf(details, sizeof(details), "(ft_strlen segfaulted but libc strlen did not)");
+				else if (!ft_segfaulted && !libc_segfaulted)
+					snprintf(details, sizeof(details), "(both functions handled NULL gracefully)");
+				else
+					details[0] = '\0';
+				
+				print_test_result("NULL pointer (must segfault like libc)", passed, passed ? "" : details);
+				stats->total++;
+				if (passed) stats->passed++;
+				else stats->failed++;
+			}
+		}
 	}
 	
 	printf("\n");
