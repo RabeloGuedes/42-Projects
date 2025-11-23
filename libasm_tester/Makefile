@@ -24,7 +24,7 @@ LIBASM_PATH_FILE = .libasm_path
 LIBASM_PATH = $(shell cat $(LIBASM_PATH_FILE) 2>/dev/null | tr -d '\n')
 LIBASM_LIB = $(LIBASM_PATH)/libasm.a
 
-.PHONY: all clean fclean re test
+.PHONY: all clean fclean re test test_verbose
 
 all: $(NAME)
 
@@ -37,8 +37,26 @@ $(NAME): $(OBJS)
 	@echo "Compiling $<..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Run tests with automatic build
+# Run tests with progress bar (default)
 test:
+	@if [ ! -f $(LIBASM_PATH_FILE) ]; then \
+		read -p "Enter the absolute path to your libasm project: " path; \
+		echo -n "$$path" > $(LIBASM_PATH_FILE); \
+	fi
+	@LIBASM_PATH=$$(cat $(LIBASM_PATH_FILE) | tr -d '\n'); \
+	echo "Using libasm from: $$LIBASM_PATH"; \
+	echo "Building libasm..."; \
+	$(MAKE) -C "$$LIBASM_PATH" > /dev/null 2>&1; \
+	if [ ! -f "$$LIBASM_PATH/libasm.a" ]; then \
+		echo "Error: libasm.a not found at $$LIBASM_PATH/libasm.a"; \
+		exit 1; \
+	fi; \
+	$(MAKE) fclean_objs > /dev/null 2>&1; \
+	$(MAKE) CFLAGS="$(CFLAGS) -I$$LIBASM_PATH" LDFLAGS="$$LIBASM_PATH/libasm.a" test_with_lib > /dev/null 2>&1; \
+	./$(NAME) "$$LIBASM_PATH"
+
+# Run tests with full verbose output
+test_verbose:
 	@if [ ! -f $(LIBASM_PATH_FILE) ]; then \
 		read -p "Enter the absolute path to your libasm project: " path; \
 		echo -n "$$path" > $(LIBASM_PATH_FILE); \
@@ -55,7 +73,7 @@ test:
 	$(MAKE) fclean_objs; \
 	$(MAKE) CFLAGS="$(CFLAGS) -I$$LIBASM_PATH" LDFLAGS="$$LIBASM_PATH/libasm.a" test_with_lib; \
 	echo ""; \
-	./$(NAME) "$$LIBASM_PATH"
+	./$(NAME) -v "$$LIBASM_PATH"
 
 test_with_lib: $(OBJS)
 	$(CC) $(CFLAGS) -Wl,--whole-archive $(LDFLAGS) -Wl,--no-whole-archive $(OBJS) -o $(NAME)

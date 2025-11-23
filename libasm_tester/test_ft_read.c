@@ -401,5 +401,6 @@ void test_ft_read(t_test_stats *stats)
 		unlink(filename);
 	}
 	
-	printf("\n");
+	if (g_verbose_mode)
+		printf("\n");
 }

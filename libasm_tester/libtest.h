@@ -9,6 +9,9 @@
 # include <errno.h>
 # include <dlfcn.h>
 
+// Global verbose mode flag
+extern int g_verbose_mode;
+
 // Color codes
 # define COLOR_RESET   "\033[0m"
 # define COLOR_RED     "\033[1;31m"

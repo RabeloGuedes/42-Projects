@@ -5,33 +5,38 @@ void test_ft_atoi_base(t_test_stats *stats)
 {
 	(void)stats;
 	print_header("Testing ft_atoi_base [BONUS]");
-	printf("%s  Tests not yet implemented.%s\n\n", COLOR_YELLOW, COLOR_RESET);
+	if (g_verbose_mode)
+		printf("%s  Tests not yet implemented.%s\n\n", COLOR_YELLOW, COLOR_RESET);
 }
 
 void test_ft_list_push_front(t_test_stats *stats)
 {
 	(void)stats;
 	print_header("Testing ft_list_push_front [BONUS]");
-	printf("%s  Tests not yet implemented.%s\n\n", COLOR_YELLOW, COLOR_RESET);
+	if (g_verbose_mode)
+		printf("%s  Tests not yet implemented.%s\n\n", COLOR_YELLOW, COLOR_RESET);
 }
 
 void test_ft_list_size(t_test_stats *stats)
 {
 	(void)stats;
 	print_header("Testing ft_list_size [BONUS]");
-	printf("%s  Tests not yet implemented.%s\n\n", COLOR_YELLOW, COLOR_RESET);
+	if (g_verbose_mode)
+		printf("%s  Tests not yet implemented.%s\n\n", COLOR_YELLOW, COLOR_RESET);
 }
 
 void test_ft_list_sort(t_test_stats *stats)
 {
 	(void)stats;
 	print_header("Testing ft_list_sort [BONUS]");
-	printf("%s  Tests not yet implemented.%s\n\n", COLOR_YELLOW, COLOR_RESET);
+	if (g_verbose_mode)
+		printf("%s  Tests not yet implemented.%s\n\n", COLOR_YELLOW, COLOR_RESET);
 }
 
 void test_ft_list_remove_if(t_test_stats *stats)
 {
 	(void)stats;
 	print_header("Testing ft_list_remove_if [BONUS]");
-	printf("%s  Tests not yet implemented.%s\n\n", COLOR_YELLOW, COLOR_RESET);
+	if (g_verbose_mode)
+		printf("%s  Tests not yet implemented.%s\n\n", COLOR_YELLOW, COLOR_RESET);
 }

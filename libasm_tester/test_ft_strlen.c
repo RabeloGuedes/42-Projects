@@ -252,5 +252,6 @@ void test_ft_strlen(t_test_stats *stats)
 		}
 	}
 	
-	printf("\n");
+	if (g_verbose_mode)
+		printf("\n");
 }

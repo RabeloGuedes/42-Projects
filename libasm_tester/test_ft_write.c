@@ -346,5 +346,6 @@ void test_ft_write(t_test_stats *stats)
 	}
 }
 
-	printf("\n");
+	if (g_verbose_mode)
+		printf("\n");
 }

@@ -4,6 +4,9 @@ void *g_libasm_handle = NULL;
 
 void print_header(const char *title)
 {
+	if (!g_verbose_mode)
+		return;
+		
 	int len = strlen(title);
 	int padding = (60 - len) / 2;
 	
@@ -22,6 +25,9 @@ void print_header(const char *title)
 
 void print_test_result(const char *test_name, int passed, const char *details)
 {
+	if (!g_verbose_mode)
+		return;
+		
 	if (passed)
 	{
 		printf("  %s%s%s ", COLOR_GREEN, CHECK_MARK, COLOR_RESET);
@@ -43,6 +49,9 @@ void print_test_result(const char *test_name, int passed, const char *details)
 
 void print_summary(t_test_stats stats)
 {
+	if (!g_verbose_mode)
+		return;
+		
 	printf("\n%s", COLOR_CYAN);
 	for (int i = 0; i < 60; i++)
 		printf("-");
