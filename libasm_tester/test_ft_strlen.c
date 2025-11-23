@@ -2,12 +2,20 @@
 #include <signal.h>
 #include <sys/wait.h>
 
-// External declaration - will be linked from libasm.a
+// External declaration - will be linked from libasm.a or weak wrapper
 extern size_t ft_strlen(const char *s);
 
 void test_ft_strlen(t_test_stats *stats)
 {
 	print_header("Testing ft_strlen");
+	
+	// Check if function is implemented (detect weak wrapper)
+	const char *test_str = "test";
+	if (ft_strlen(test_str) == 0xDEADBEEF)
+	{
+		printf("%s  Function not found%s\n", COLOR_YELLOW, COLOR_RESET);
+		return;
+	}
 	
 	// Test 1: Empty string
 	{

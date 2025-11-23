@@ -11,7 +11,8 @@ SRCS = main.c \
        test_ft_strlen.c \
        test_ft_strcpy.c \
        test_ft_strcmp.c \
-       test_stubs.c
+       test_stubs.c \
+       libasm_weak.c
 
 OBJS = $(SRCS:.c=.o)
 
@@ -54,7 +55,7 @@ test:
 	./$(NAME) "$$LIBASM_PATH"
 
 test_with_lib: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LDFLAGS) -o $(NAME)
+	$(CC) $(CFLAGS) -Wl,--whole-archive $(LDFLAGS) -Wl,--no-whole-archive $(OBJS) -o $(NAME)
 
 clean:
 	@echo "Cleaning object files..."

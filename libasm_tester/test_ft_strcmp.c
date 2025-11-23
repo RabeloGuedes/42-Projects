@@ -2,12 +2,19 @@
 #include <signal.h>
 #include <sys/wait.h>
 
-// External declaration - will be linked from libasm.a
+// External declaration - will be linked from libasm.a or weak wrapper
 extern int ft_strcmp(const char *s1, const char *s2);
 
 void test_ft_strcmp(t_test_stats *stats)
 {
-	print_header("Testing ft_strcmp");
+	print_header("ft_strcmp");
+	
+	// Check if function is implemented (detect weak wrapper)
+	if (ft_strcmp("test", "test") == (int)0xDEADBEEF)
+	{
+		printf("%s  Function not found%s\n", COLOR_YELLOW, COLOR_RESET);
+		return;
+	}
 	
 	// Test 1: Identical strings
 	{

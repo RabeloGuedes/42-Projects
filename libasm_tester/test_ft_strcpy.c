@@ -2,12 +2,20 @@
 #include <signal.h>
 #include <sys/wait.h>
 
-// External declaration - will be linked from libasm.a
+// External declaration - will be linked from libasm.a or weak wrapper
 extern char *ft_strcpy(char *dst, const char *src);
 
 void test_ft_strcpy(t_test_stats *stats)
 {
 	print_header("Testing ft_strcpy");
+	
+	// Check if function is implemented (detect weak wrapper)
+	char test_dst[10];
+	if (ft_strcpy(test_dst, "test") == (char *)0xDEADBEEF)
+	{
+		printf("%s  Function not found%s\n", COLOR_YELLOW, COLOR_RESET);
+		return;
+	}
 	
 	// Test 1: Simple copy
 	{
