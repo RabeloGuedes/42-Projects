@@ -12,6 +12,7 @@ SRCS = main.c \
        test_ft_strcpy.c \
        test_ft_strcmp.c \
        test_ft_write.c \
+       test_ft_read.c \
        test_stubs.c \
        libasm_weak.c
 
