@@ -10,6 +10,7 @@ SRCS = main.c \
        test_framework.c \
        test_ft_strlen.c \
        test_ft_strcpy.c \
+       test_ft_strcmp.c \
        test_stubs.c
 
 OBJS = $(SRCS:.c=.o)
