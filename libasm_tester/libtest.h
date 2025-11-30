@@ -8,6 +8,8 @@
 # include <fcntl.h>
 # include <errno.h>
 # include <dlfcn.h>
+# include <sys/wait.h>
+# include <signal.h>
 
 // Global verbose mode flag
 extern int g_verbose_mode;
