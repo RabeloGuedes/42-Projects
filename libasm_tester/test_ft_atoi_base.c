@@ -1,5 +1,6 @@
 #include "libtest.h"
 #include <limits.h>
+#include <sys/wait.h>
 
 // Weak symbol sentinel
 #define WEAK_SENTINEL ((int)0xDEADBEEF)
@@ -284,35 +285,170 @@ void test_ft_atoi_base(t_test_stats *stats)
 	if (passed) stats->passed++;
 	else stats->failed++;
 	
-	// Test 18: NULL string pointer
-	ft_result = ft_atoi_base(NULL, "0123456789");
-	ref_result = ref_atoi_base(NULL, "0123456789");
-	passed = (ft_result == ref_result);
-	snprintf(detail, sizeof(detail), "(NULL, \"0123456789\": expected %d, got %d)", ref_result, ft_result);
-	print_test_result("NULL string pointer", passed, detail);
-	stats->total++;
-	if (passed) stats->passed++;
-	else stats->failed++;
+	// Test 18: NULL string pointer (fork-protected)
+	{
+		pid_t pid = fork();
+		if (pid == 0)
+		{
+			volatile int result = ft_atoi_base(NULL, "0123456789");
+			(void)result;
+			exit(0);
+		}
+		else if (pid > 0)
+		{
+			int status;
+			waitpid(pid, &status, 0);
+			int ft_crashed = WIFSIGNALED(status);
+			
+			pid_t pid2 = fork();
+			if (pid2 == 0)
+			{
+				volatile int result = ref_atoi_base(NULL, "0123456789");
+				(void)result;
+				exit(0);
+			}
+			else if (pid2 > 0)
+			{
+				int status2;
+				waitpid(pid2, &status2, 0);
+				int ref_crashed = WIFSIGNALED(status2);
+				
+				passed = (ft_crashed == ref_crashed);
+				if (ft_crashed && ref_crashed)
+					snprintf(detail, sizeof(detail), "(NULL string: both segfault as expected)");
+				else if (!ft_crashed && !ref_crashed)
+					snprintf(detail, sizeof(detail), "(NULL string: both return 0 safely)");
+				else if (ft_crashed)
+					snprintf(detail, sizeof(detail), "(NULL string: ft segfaults but ref returns 0)");
+				else
+					snprintf(detail, sizeof(detail), "(NULL string: ft returns 0 but ref segfaults)");
+			}
+			else
+			{
+				passed = 0;
+				snprintf(detail, sizeof(detail), "(fork failed for ref test)");
+			}
+		}
+		else
+		{
+			passed = 0;
+			snprintf(detail, sizeof(detail), "(fork failed for ft test)");
+		}
+		print_test_result("NULL string pointer (protected)", passed, detail);
+		stats->total++;
+		if (passed) stats->passed++;
+		else stats->failed++;
+	}
 	
-	// Test 19: NULL base pointer
-	ft_result = ft_atoi_base("42", NULL);
-	ref_result = ref_atoi_base("42", NULL);
-	passed = (ft_result == ref_result);
-	snprintf(detail, sizeof(detail), "(\"42\", NULL: expected %d, got %d)", ref_result, ft_result);
-	print_test_result("NULL base pointer", passed, detail);
-	stats->total++;
-	if (passed) stats->passed++;
-	else stats->failed++;
+	// Test 19: NULL base pointer (fork-protected)
+	{
+		pid_t pid = fork();
+		if (pid == 0)
+		{
+			volatile int result = ft_atoi_base("42", NULL);
+			(void)result;
+			exit(0);
+		}
+		else if (pid > 0)
+		{
+			int status;
+			waitpid(pid, &status, 0);
+			int ft_crashed = WIFSIGNALED(status);
+			
+			pid_t pid2 = fork();
+			if (pid2 == 0)
+			{
+				volatile int result = ref_atoi_base("42", NULL);
+				(void)result;
+				exit(0);
+			}
+			else if (pid2 > 0)
+			{
+				int status2;
+				waitpid(pid2, &status2, 0);
+				int ref_crashed = WIFSIGNALED(status2);
+				
+				passed = (ft_crashed == ref_crashed);
+				if (ft_crashed && ref_crashed)
+					snprintf(detail, sizeof(detail), "(NULL base: both segfault as expected)");
+				else if (!ft_crashed && !ref_crashed)
+					snprintf(detail, sizeof(detail), "(NULL base: both return 0 safely)");
+				else if (ft_crashed)
+					snprintf(detail, sizeof(detail), "(NULL base: ft segfaults but ref returns 0)");
+				else
+					snprintf(detail, sizeof(detail), "(NULL base: ft returns 0 but ref segfaults)");
+			}
+			else
+			{
+				passed = 0;
+				snprintf(detail, sizeof(detail), "(fork failed for ref test)");
+			}
+		}
+		else
+		{
+			passed = 0;
+			snprintf(detail, sizeof(detail), "(fork failed for ft test)");
+		}
+		print_test_result("NULL base pointer (protected)", passed, detail);
+		stats->total++;
+		if (passed) stats->passed++;
+		else stats->failed++;
+	}
 	
-	// Test 20: Both NULL
-	ft_result = ft_atoi_base(NULL, NULL);
-	ref_result = ref_atoi_base(NULL, NULL);
-	passed = (ft_result == ref_result);
-	snprintf(detail, sizeof(detail), "(NULL, NULL: expected %d, got %d)", ref_result, ft_result);
-	print_test_result("Both NULL pointers", passed, detail);
-	stats->total++;
-	if (passed) stats->passed++;
-	else stats->failed++;
+	// Test 20: Both NULL pointers (fork-protected)
+	{
+		pid_t pid = fork();
+		if (pid == 0)
+		{
+			volatile int result = ft_atoi_base(NULL, NULL);
+			(void)result;
+			exit(0);
+		}
+		else if (pid > 0)
+		{
+			int status;
+			waitpid(pid, &status, 0);
+			int ft_crashed = WIFSIGNALED(status);
+			
+			pid_t pid2 = fork();
+			if (pid2 == 0)
+			{
+				volatile int result = ref_atoi_base(NULL, NULL);
+				(void)result;
+				exit(0);
+			}
+			else if (pid2 > 0)
+			{
+				int status2;
+				waitpid(pid2, &status2, 0);
+				int ref_crashed = WIFSIGNALED(status2);
+				
+				passed = (ft_crashed == ref_crashed);
+				if (ft_crashed && ref_crashed)
+					snprintf(detail, sizeof(detail), "(both NULL: both segfault as expected)");
+				else if (!ft_crashed && !ref_crashed)
+					snprintf(detail, sizeof(detail), "(both NULL: both return 0 safely)");
+				else if (ft_crashed)
+					snprintf(detail, sizeof(detail), "(both NULL: ft segfaults but ref returns 0)");
+				else
+					snprintf(detail, sizeof(detail), "(both NULL: ft returns 0 but ref segfaults)");
+			}
+			else
+			{
+				passed = 0;
+				snprintf(detail, sizeof(detail), "(fork failed for ref test)");
+			}
+		}
+		else
+		{
+			passed = 0;
+			snprintf(detail, sizeof(detail), "(fork failed for ft test)");
+		}
+		print_test_result("Both NULL pointers (protected)", passed, detail);
+		stats->total++;
+		if (passed) stats->passed++;
+		else stats->failed++;
+	}
 	
 	// Test 21: Zero
 	ft_result = ft_atoi_base("0", "0123456789");
