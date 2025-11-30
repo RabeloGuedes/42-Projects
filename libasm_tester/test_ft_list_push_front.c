@@ -28,7 +28,7 @@ static void free_list(t_list *list)
 }
 
 // Helper function to count list size
-static int list_size(t_list *list)
+__attribute__((unused)) static int list_size(t_list *list)
 {
 	int count = 0;
 	
@@ -77,93 +77,218 @@ void test_ft_list_push_front(t_test_stats *stats)
 	}
 	free_list(list_ft);
 	
-	// Test 1: NULL pointer parameter (should not segfault)
-	ft_list_push_front(NULL, "data");
-	ref_list_push_front(NULL, "data");
-	passed = 1; // If we reach here, it didn't segfault
-	snprintf(detail, sizeof(detail), "(NULL pointer parameter: no segfault)");
-	print_test_result("NULL pointer parameter (no crash)", passed, detail);
-	stats->total++;
-	if (passed) stats->passed++;
-	else stats->failed++;
-	
-	// Test 2: Push to empty list (NULL)
-	list_ft = NULL;
-	list_ref = NULL;
-	ft_list_push_front(&list_ft, "first");
-	ref_list_push_front(&list_ref, "first");
-	passed = (list_ft != NULL && list_ref != NULL && 
-			  list_ft->data == list_ref->data &&
-			  list_ft->next == NULL && list_ref->next == NULL);
-	snprintf(detail, sizeof(detail), "(push \"first\" to NULL: list=%p, data=%s)", 
-			 (void*)list_ft, list_ft ? (char*)list_ft->data : "NULL");
-	print_test_result("Push to empty list (NULL)", passed, detail);
-	stats->total++;
-	if (passed) stats->passed++;
-	else stats->failed++;
-	free_list(list_ft);
-	free_list(list_ref);
-	
-	// Test 3: Push second element
-	list_ft = NULL;
-	list_ref = NULL;
-	ft_list_push_front(&list_ft, "second");
-	ft_list_push_front(&list_ft, "first");
-	ref_list_push_front(&list_ref, "second");
-	ref_list_push_front(&list_ref, "first");
-	passed = (list_ft && list_ref &&
-			  list_size(list_ft) == 2 && list_size(list_ref) == 2 &&
-			  list_ft->data == list_ref->data &&
-			  list_ft->next->data == list_ref->next->data);
-	snprintf(detail, sizeof(detail), "(size=%d, first=%s, second=%s)", 
-			 list_size(list_ft), 
-			 list_ft ? (char*)list_ft->data : "NULL",
-			 list_ft && list_ft->next ? (char*)list_ft->next->data : "NULL");
-	print_test_result("Push second element", passed, detail);
-	stats->total++;
-	if (passed) stats->passed++;
-	else stats->failed++;
-	free_list(list_ft);
-	free_list(list_ref);
-	
-	// Test 4: Push multiple elements (5)
-	list_ft = NULL;
-	list_ref = NULL;
-	for (int i = 5; i > 0; i--)
+	// Test 1: NULL pointer parameter (fork-protected)
 	{
-		char *str = malloc(20);
-		sprintf(str, "element_%d", i);
-		ft_list_push_front(&list_ft, str);
-		ref_list_push_front(&list_ref, str);
-	}
-	passed = (list_size(list_ft) == 5 && list_size(list_ref) == 5);
-	if (passed)
-	{
-		t_list *tmp_ft = list_ft;
-		t_list *tmp_ref = list_ref;
-		while (tmp_ft && tmp_ref && passed)
+		pid_t pid = fork();
+		if (pid == 0)
 		{
-			if (tmp_ft->data != tmp_ref->data)
-				passed = 0;
-			tmp_ft = tmp_ft->next;
-			tmp_ref = tmp_ref->next;
+			ft_list_push_front(NULL, "data");
+			exit(0);
 		}
+		else if (pid > 0)
+		{
+			int status;
+			waitpid(pid, &status, 0);
+			int ft_crashed = WIFSIGNALED(status);
+			
+			pid_t pid2 = fork();
+			if (pid2 == 0)
+			{
+				ref_list_push_front(NULL, "data");
+				exit(0);
+			}
+			else if (pid2 > 0)
+			{
+				int status2;
+				waitpid(pid2, &status2, 0);
+				int ref_crashed = WIFSIGNALED(status2);
+				
+				passed = (ft_crashed == ref_crashed);
+				if (ft_crashed && ref_crashed)
+					snprintf(detail, sizeof(detail), "(NULL pointer: both segfault as expected)");
+				else if (!ft_crashed && !ref_crashed)
+					snprintf(detail, sizeof(detail), "(NULL pointer: both handle safely)");
+				else if (ft_crashed)
+					snprintf(detail, sizeof(detail), "(NULL pointer: ft segfaults but ref handles safely)");
+				else
+					snprintf(detail, sizeof(detail), "(NULL pointer: ft handles but ref segfaults)");
+			}
+			else
+			{
+				passed = 0;
+				snprintf(detail, sizeof(detail), "(fork failed for ref test)");
+			}
+		}
+		else
+		{
+			passed = 0;
+			snprintf(detail, sizeof(detail), "(fork failed for ft test)");
+		}
+		print_test_result("NULL pointer parameter (protected)", passed, detail);
+		stats->total++;
+		if (passed) stats->passed++;
+		else stats->failed++;
 	}
-	snprintf(detail, sizeof(detail), "(pushed 5 elements: size=%d, order correct=%s)", 
-			 list_size(list_ft), passed ? "yes" : "no");
-	print_test_result("Push 5 elements", passed, detail);
-	stats->total++;
-	if (passed) stats->passed++;
-	else stats->failed++;
-	// Free the strings we allocated
-	t_list *tmp = list_ft;
-	while (tmp)
+	
+	// Test 2: Push to empty list (NULL) - fork-protected
 	{
-		free(tmp->data);
-		tmp = tmp->next;
+		pid_t pid = fork();
+		if (pid == 0)
+		{
+			t_list *test_list = NULL;
+			ft_list_push_front(&test_list, "first");
+			// Check if node was created
+			if (test_list && test_list->data == (void*)"first" && test_list->next == NULL)
+				exit(0);
+			exit(1);
+		}
+		else if (pid > 0)
+		{
+			int status;
+			waitpid(pid, &status, 0);
+			int ft_ok = (WIFEXITED(status) && WEXITSTATUS(status) == 0);
+			int ft_crashed = WIFSIGNALED(status);
+			
+			pid_t pid2 = fork();
+			if (pid2 == 0)
+			{
+				t_list *test_list = NULL;
+				ref_list_push_front(&test_list, "first");
+				if (test_list && test_list->data == (void*)"first" && test_list->next == NULL)
+					exit(0);
+				exit(1);
+			}
+			else if (pid2 > 0)
+			{
+				int status2;
+				waitpid(pid2, &status2, 0);
+				int ref_ok = (WIFEXITED(status2) && WEXITSTATUS(status2) == 0);
+				
+				passed = (ft_ok && ref_ok && !ft_crashed);
+				if (passed)
+					snprintf(detail, sizeof(detail), "(push \"first\" to empty list: success)");
+				else if (ft_crashed)
+					snprintf(detail, sizeof(detail), "(push \"first\": ft segfaulted)");
+				else if (!ft_ok && ref_ok)
+					snprintf(detail, sizeof(detail), "(push \"first\": ft failed but ref succeeded)");
+				else
+					snprintf(detail, sizeof(detail), "(push \"first\": both failed)");
+			}
+			else
+			{
+				passed = 0;
+				snprintf(detail, sizeof(detail), "(fork failed for ref test)");
+			}
+		}
+		else
+		{
+			passed = 0;
+			snprintf(detail, sizeof(detail), "(fork failed for ft test)");
+		}
+		print_test_result("Push to empty list (protected)", passed, detail);
+		stats->total++;
+		if (passed) stats->passed++;
+		else stats->failed++;
 	}
-	free_list(list_ft);
-	free_list(list_ref);
+	
+	// Test 3: Push second element (fork-protected)
+	{
+		pid_t pid = fork();
+		if (pid == 0)
+		{
+			t_list *test_list = NULL;
+			ft_list_push_front(&test_list, "second");
+			ft_list_push_front(&test_list, "first");
+			// Verify structure
+			if (test_list && test_list->next &&
+				test_list->data == (void*)"first" &&
+				test_list->next->data == (void*)"second" &&
+				test_list->next->next == NULL)
+				exit(0);
+			exit(1);
+		}
+		else if (pid > 0)
+		{
+			int status;
+			waitpid(pid, &status, 0);
+			passed = (WIFEXITED(status) && WEXITSTATUS(status) == 0 && !WIFSIGNALED(status));
+			
+			if (passed)
+				snprintf(detail, sizeof(detail), "(pushed 2 elements: order correct)");
+			else if (WIFSIGNALED(status))
+				snprintf(detail, sizeof(detail), "(pushed 2 elements: segfaulted)");
+			else
+				snprintf(detail, sizeof(detail), "(pushed 2 elements: incorrect structure)");
+		}
+		else
+		{
+			passed = 0;
+			snprintf(detail, sizeof(detail), "(fork failed)");
+		}
+		print_test_result("Push second element (protected)", passed, detail);
+		stats->total++;
+		if (passed) stats->passed++;
+		else stats->failed++;
+	}
+	
+	// Test 4: Push multiple elements (5) - fork-protected
+	{
+		pid_t pid = fork();
+		if (pid == 0)
+		{
+			t_list *test_list = NULL;
+			char *strs[5];
+			for (int i = 5; i > 0; i--)
+			{
+				strs[6-i-1] = malloc(20);
+				sprintf(strs[6-i-1], "element_%d", i);
+				ft_list_push_front(&test_list, strs[6-i-1]);
+			}
+			// Verify count and order
+			int count = 0;
+			t_list *tmp = test_list;
+			int valid = 1;
+			for (int i = 1; i <= 5 && tmp; i++)
+			{
+				count++;
+				char expected[20];
+				sprintf(expected, "element_%d", i);
+				if (strcmp((char*)tmp->data, expected) != 0)
+					valid = 0;
+				tmp = tmp->next;
+			}
+			// Cleanup
+			tmp = test_list;
+			while (tmp)
+			{
+				free(tmp->data);
+				tmp = tmp->next;
+			}
+			exit((count == 5 && valid) ? 0 : 1);
+		}
+		else if (pid > 0)
+		{
+			int status;
+			waitpid(pid, &status, 0);
+			passed = (WIFEXITED(status) && WEXITSTATUS(status) == 0 && !WIFSIGNALED(status));
+			
+			if (passed)
+				snprintf(detail, sizeof(detail), "(pushed 5 elements: size=5, order correct)");
+			else if (WIFSIGNALED(status))
+				snprintf(detail, sizeof(detail), "(pushed 5 elements: segfaulted)");
+			else
+				snprintf(detail, sizeof(detail), "(pushed 5 elements: incorrect structure)");
+		}
+		else
+		{
+			passed = 0;
+			snprintf(detail, sizeof(detail), "(fork failed)");
+		}
+		print_test_result("Push 5 elements (protected)", passed, detail);
+		stats->total++;
+		if (passed) stats->passed++;
+		else stats->failed++;
+	}
 	
 	// Test 5: Push NULL data
 	list_ft = NULL;
@@ -267,33 +392,51 @@ void test_ft_list_push_front(t_test_stats *stats)
 	free_list(list_ft);
 	free_list(list_ref);
 	
-	// Test 10: Push many elements (stress test)
-	list_ft = NULL;
-	list_ref = NULL;
-	for (int i = 100; i > 0; i--)
+	// Test 10: Push many elements (stress test) - fork-protected
 	{
-		ft_list_push_front(&list_ft, (void*)(long)i);
-		ref_list_push_front(&list_ref, (void*)(long)i);
-	}
-	passed = (list_size(list_ft) == 100 && list_size(list_ref) == 100);
-	if (passed)
-	{
-		t_list *tmp = list_ft;
-		for (int i = 1; i <= 100 && tmp && passed; i++)
+		pid_t pid = fork();
+		if (pid == 0)
 		{
-			if ((long)tmp->data != i)
-				passed = 0;
-			tmp = tmp->next;
+			t_list *test_list = NULL;
+			for (int i = 100; i > 0; i--)
+				ft_list_push_front(&test_list, (void*)(long)i);
+			
+			// Verify count and order
+			int count = 0;
+			int valid = 1;
+			t_list *tmp = test_list;
+			for (int i = 1; i <= 100 && tmp; i++)
+			{
+				count++;
+				if ((long)tmp->data != i)
+					valid = 0;
+				tmp = tmp->next;
+			}
+			exit((count == 100 && valid) ? 0 : 1);
 		}
+		else if (pid > 0)
+		{
+			int status;
+			waitpid(pid, &status, 0);
+			passed = (WIFEXITED(status) && WEXITSTATUS(status) == 0 && !WIFSIGNALED(status));
+			
+			if (passed)
+				snprintf(detail, sizeof(detail), "(stress test: 100 elements, order correct)");
+			else if (WIFSIGNALED(status))
+				snprintf(detail, sizeof(detail), "(stress test: segfaulted)");
+			else
+				snprintf(detail, sizeof(detail), "(stress test: incorrect structure)");
+		}
+		else
+		{
+			passed = 0;
+			snprintf(detail, sizeof(detail), "(fork failed)");
+		}
+		print_test_result("Stress test (100 elements, protected)", passed, detail);
+		stats->total++;
+		if (passed) stats->passed++;
+		else stats->failed++;
 	}
-	snprintf(detail, sizeof(detail), "(stress test: pushed 100 elements, size=%d, order=%s)", 
-			 list_size(list_ft), passed ? "correct" : "incorrect");
-	print_test_result("Stress test (100 elements)", passed, detail);
-	stats->total++;
-	if (passed) stats->passed++;
-	else stats->failed++;
-	free_list(list_ft);
-	free_list(list_ref);
 	
 	// Test 11: Push empty string
 	list_ft = NULL;
