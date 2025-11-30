@@ -12,6 +12,10 @@ int main(int argc, char **argv)
 	t_test_stats mandatory_stats = {0, 0, 0};
 	t_test_stats bonus_stats = {0, 0, 0};
 	
+	// Track individual bonus functions (5% each)
+	t_test_stats bonus_fn_stats[5] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+	int bonus_functions_passed = 0;
+	
 	// Check if stdout is a terminal
 	g_is_tty = isatty(STDOUT_FILENO);
 	
@@ -185,45 +189,70 @@ int main(int argc, char **argv)
 	}
 	
 	// Test bonus functions
-	test_ft_atoi_base(&bonus_stats);
+	test_ft_atoi_base(&bonus_fn_stats[0]);
+	bonus_stats.total += bonus_fn_stats[0].total;
+	bonus_stats.passed += bonus_fn_stats[0].passed;
+	bonus_stats.failed += bonus_fn_stats[0].failed;
+	if (bonus_fn_stats[0].failed == 0 && bonus_fn_stats[0].total > 0)
+		bonus_functions_passed++;
 	if (!g_verbose_mode)
 	{
 		if (g_is_tty)
-			printf("\r\033[2K%sTesting Bonus Functions:%s [████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 20%% (1/5)", COLOR_CYAN, COLOR_RESET);
+			printf("\r\033[2K%sTesting Bonus Functions:%s [%s████████%s░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 20%% (1/5)", COLOR_CYAN, COLOR_RESET, COLOR_MAGENTA, COLOR_RESET);
 		fflush(stdout);
 	}
 		
-	test_ft_list_push_front(&bonus_stats);
+	test_ft_list_push_front(&bonus_fn_stats[1]);
+	bonus_stats.total += bonus_fn_stats[1].total;
+	bonus_stats.passed += bonus_fn_stats[1].passed;
+	bonus_stats.failed += bonus_fn_stats[1].failed;
+	if (bonus_fn_stats[1].failed == 0 && bonus_fn_stats[1].total > 0)
+		bonus_functions_passed++;
 	if (!g_verbose_mode)
 	{
 		if (g_is_tty)
-			printf("\r\033[2K%sTesting Bonus Functions:%s [████████████████░░░░░░░░░░░░░░░░░░░░░░░░░] 40%% (2/5)", COLOR_CYAN, COLOR_RESET);
+			printf("\r\033[2K%sTesting Bonus Functions:%s [%s████████████████%s░░░░░░░░░░░░░░░░░░░░░░░░░] 40%% (2/5)", COLOR_CYAN, COLOR_RESET, COLOR_MAGENTA, COLOR_RESET);
 		fflush(stdout);
 	}
 		
-	test_ft_list_size(&bonus_stats);
+	test_ft_list_size(&bonus_fn_stats[2]);
+	bonus_stats.total += bonus_fn_stats[2].total;
+	bonus_stats.passed += bonus_fn_stats[2].passed;
+	bonus_stats.failed += bonus_fn_stats[2].failed;
+	if (bonus_fn_stats[2].failed == 0 && bonus_fn_stats[2].total > 0)
+		bonus_functions_passed++;
 	if (!g_verbose_mode)
 	{
 		if (g_is_tty)
-			printf("\r\033[2K%sTesting Bonus Functions:%s [████████████████████████░░░░░░░░░░░░░░░░░] 60%% (3/5)", COLOR_CYAN, COLOR_RESET);
+			printf("\r\033[2K%sTesting Bonus Functions:%s [%s████████████████████████%s░░░░░░░░░░░░░░░░░] 60%% (3/5)", COLOR_CYAN, COLOR_RESET, COLOR_MAGENTA, COLOR_RESET);
 		fflush(stdout);
 	}
 		
-	test_ft_list_sort(&bonus_stats);
+	test_ft_list_sort(&bonus_fn_stats[3]);
+	bonus_stats.total += bonus_fn_stats[3].total;
+	bonus_stats.passed += bonus_fn_stats[3].passed;
+	bonus_stats.failed += bonus_fn_stats[3].failed;
+	if (bonus_fn_stats[3].failed == 0 && bonus_fn_stats[3].total > 0)
+		bonus_functions_passed++;
 	if (!g_verbose_mode)
 	{
 		if (g_is_tty)
-			printf("\r\033[2K%sTesting Bonus Functions:%s [████████████████████████████████░░░░░░░░░] 80%% (4/5)", COLOR_CYAN, COLOR_RESET);
+			printf("\r\033[2K%sTesting Bonus Functions:%s [%s████████████████████████████████%s░░░░░░░░░] 80%% (4/5)", COLOR_CYAN, COLOR_RESET, COLOR_MAGENTA, COLOR_RESET);
 		fflush(stdout);
 	}
 		
-	test_ft_list_remove_if(&bonus_stats);
+	test_ft_list_remove_if(&bonus_fn_stats[4]);
+	bonus_stats.total += bonus_fn_stats[4].total;
+	bonus_stats.passed += bonus_fn_stats[4].passed;
+	bonus_stats.failed += bonus_fn_stats[4].failed;
+	if (bonus_fn_stats[4].failed == 0 && bonus_fn_stats[4].total > 0)
+		bonus_functions_passed++;
 	if (!g_verbose_mode)
 	{
 		if (g_is_tty)
-			printf("\r\033[2K%sTesting Bonus Functions:%s [█████████████████████████████████████████] 100%% (5/5)", COLOR_CYAN, COLOR_RESET);
+			printf("\r\033[2K%sTesting Bonus Functions:%s [%s█████████████████████████████████████████%s] 100%% (5/5)", COLOR_CYAN, COLOR_RESET, COLOR_MAGENTA, COLOR_RESET);
 		else
-			printf("%sTesting Bonus Functions:%s [█████████████████████████████████████████] 100%% (5/5)", COLOR_CYAN, COLOR_RESET);
+			printf("%sTesting Bonus Functions:%s [%s█████████████████████████████████████████%s] 100%% (5/5)", COLOR_CYAN, COLOR_RESET, COLOR_MAGENTA, COLOR_RESET);
 		printf("\n");
 		fflush(stdout);
 	}
@@ -257,10 +286,10 @@ int main(int argc, char **argv)
 			mandatory_score = (float)mandatory_stats.passed / mandatory_stats.total * 100.0;
 		}
 		
-		// Bonus only counts if mandatory is 100%
-		if (mandatory_complete && bonus_stats.total > 0)
+		// Bonus: 5% per function (only counts if mandatory is 100%)
+		if (mandatory_complete)
 		{
-			bonus_score = (float)bonus_stats.passed / bonus_stats.total * 25.0;
+			bonus_score = bonus_functions_passed * 5.0;
 		}
 		
 		float total_score = mandatory_score + bonus_score;
@@ -272,15 +301,16 @@ int main(int argc, char **argv)
 			
 		if (bonus_stats.total > 0)
 		{
-			printf("  %sBonus Tests:%s     %d/%d passed ",
+			printf("  %sBonus Functions:%s  %d/5 complete ",
 				COLOR_WHITE, COLOR_RESET,
-				bonus_stats.passed, bonus_stats.total);
+				bonus_functions_passed);
 			
 			if (mandatory_complete)
-				printf("(+%.1f%%)\n", bonus_score);
+				printf("(+%.0f%%) %s[%d/%d tests passed]%s\n", 
+					bonus_score, COLOR_MAGENTA, bonus_stats.passed, bonus_stats.total, COLOR_RESET);
 			else
-				printf("%s(not counted - mandatory incomplete)%s\n", 
-					COLOR_YELLOW, COLOR_RESET);
+				printf("%s(not counted - mandatory incomplete) [%d/%d tests passed]%s\n", 
+					COLOR_MAGENTA, bonus_stats.passed, bonus_stats.total, COLOR_RESET);
 		}
 		
 		printf("\n  %sFinal Score: ", COLOR_WHITE);
@@ -292,16 +322,26 @@ int main(int argc, char **argv)
 			printf("%s%.1f%%%s", COLOR_RED, total_score, COLOR_RESET);
 		printf(" / 125%%\n\n");
 		
-		// Progress bar
-		int bar_width = 50;
-		int filled = (int)(total_score / 125.0 * bar_width);
-		if (filled > bar_width) filled = bar_width;
+		// Progress bar with distinct colors for mandatory (green) and bonus (yellow)
+		int mandatory_bar = (int)(mandatory_score / 100.0 * 40); // 40 chars for 100%
+		int bonus_bar = (int)(bonus_score / 25.0 * 10); // 10 chars for 25%
+		if (mandatory_bar > 40) mandatory_bar = 40;
+		if (bonus_bar > 10) bonus_bar = 10;
 		
 		printf("  [");
-		for (int i = 0; i < bar_width; i++)
+		// Mandatory section (green) - 40 chars = 100%
+		for (int i = 0; i < 40; i++)
 		{
-			if (i < filled)
+			if (i < mandatory_bar)
 				printf("%s█%s", COLOR_GREEN, COLOR_RESET);
+			else
+				printf("░");
+		}
+		// Bonus section (magenta) - 10 chars = 25%
+		for (int i = 0; i < 10; i++)
+		{
+			if (i < bonus_bar)
+				printf("%s█%s", COLOR_MAGENTA, COLOR_RESET);
 			else
 				printf("░");
 		}
