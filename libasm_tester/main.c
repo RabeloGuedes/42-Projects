@@ -307,15 +307,15 @@ int main(int argc, char **argv)
 		}
 		printf("]\n\n");
 		
-		if (mandatory_complete && total_score >= 100.0)
-			printf("%s  ✓ All tests passed! Excellent work!%s\n\n", 
+		if (stats.failed == 0)
+			printf("%s  ✓ All tests passed! Perfect score!%s\n\n", 
 				COLOR_GREEN, COLOR_RESET);
-		else if (mandatory_complete)
-			printf("%s  ✓ Mandatory complete! Check bonus functions.%s\n\n", 
-				COLOR_GREEN, COLOR_RESET);
+		else if (mandatory_stats.failed == 0 && bonus_stats.failed > 0)
+			printf("%s  ✓ Mandatory complete! %d bonus test(s) failing.%s\n\n", 
+				COLOR_YELLOW, bonus_stats.failed, COLOR_RESET);
 		else if (mandatory_stats.failed > 0)
-			printf("%s  ✗ Some mandatory tests failed.%s\n\n", 
-				COLOR_RED, COLOR_RESET);
+			printf("%s  ✗ %d mandatory test(s) failed.%s\n\n", 
+				COLOR_RED, mandatory_stats.failed, COLOR_RESET);
 	}
 	
 	return (stats.failed > 0) ? 1 : 0;

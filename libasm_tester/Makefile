@@ -14,6 +14,7 @@ SRCS = main.c \
        test_ft_write.c \
        test_ft_read.c \
        test_ft_strdup.c \
+       test_ft_atoi_base.c \
        test_stubs.c \
        libasm_weak.c
 
@@ -47,6 +48,7 @@ test:
 	echo "Using libasm from: $$LIBASM_PATH"; \
 	echo "Building libasm..."; \
 	$(MAKE) -C "$$LIBASM_PATH" > /dev/null 2>&1; \
+	$(MAKE) -C "$$LIBASM_PATH" bonus > /dev/null 2>&1 || true; \
 	if [ ! -f "$$LIBASM_PATH/libasm.a" ]; then \
 		echo "Error: libasm.a not found at $$LIBASM_PATH/libasm.a"; \
 		exit 1; \
@@ -65,6 +67,8 @@ test_verbose:
 	echo "Using libasm from: $$LIBASM_PATH"; \
 	echo "Building libasm..."; \
 	$(MAKE) -C "$$LIBASM_PATH" 2>&1; \
+	echo "Building libasm bonus..."; \
+	$(MAKE) -C "$$LIBASM_PATH" bonus 2>&1 || true; \
 	if [ ! -f "$$LIBASM_PATH/libasm.a" ]; then \
 		echo "Error: libasm.a not found at $$LIBASM_PATH/libasm.a"; \
 		exit 1; \
