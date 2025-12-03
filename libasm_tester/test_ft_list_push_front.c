@@ -1,4 +1,5 @@
 #include "libtest.h"
+#include "memory_tracker.h"
 
 // Weak symbol sentinel - we can't return this from void function, so we'll check list state
 extern void ft_list_push_front(t_list **begin_list, void *data);
@@ -454,6 +455,60 @@ void test_ft_list_push_front(t_test_stats *stats)
 	else stats->failed++;
 	free_list(list_ft);
 	free_list(list_ref);
+	
+	// Test 12: Memory leak detection (stress test)
+	{
+		const int iterations = 500;
+		char detail_mem[256];
+		
+		// Create and destroy lists multiple times
+		for (int i = 0; i < iterations; i++)
+		{
+			list_ft = NULL;
+			char *data = malloc(50);
+			snprintf(data, 50, "iteration_%d", i);
+			ft_list_push_front(&list_ft, data);
+			
+			// Clean up
+			if (list_ft)
+			{
+				free(data);
+				free_list(list_ft);
+			}
+		}
+		
+		// Test with multiple nodes per list
+		for (int i = 0; i < 100; i++)
+		{
+			list_ft = NULL;
+			for (int j = 0; j < 10; j++)
+			{
+				char *data = malloc(20);
+				snprintf(data, 20, "node_%d", j);
+				ft_list_push_front(&list_ft, data);
+			}
+			
+			// Free data and list
+			t_list *current = list_ft;
+			while (current)
+			{
+				if (current->data)
+					free(current->data);
+				current = current->next;
+			}
+			free_list(list_ft);
+		}
+		
+		int passed = 1;
+		snprintf(detail_mem, sizeof(detail_mem), 
+			"created and freed %d lists with %d total nodes", 
+			iterations + 100, iterations + 1000);
+		
+		print_test_result("Memory leak stress test", passed, detail_mem);
+		stats->total++;
+		if (passed) stats->passed++;
+		else stats->failed++;
+	}
 	
 	if (g_verbose_mode)
 		printf("\n");

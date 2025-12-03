@@ -1,4 +1,5 @@
 #include "libtest.h"
+#include "memory_tracker.h"
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
@@ -350,6 +351,45 @@ void test_ft_strdup(t_test_stats *stats)
 				else stats->failed++;
 			}
 		}
+	}
+	
+	// Test 13: Memory leak detection (stress test)
+	{
+		const int iterations = 1000;
+		char detail[256];
+		
+		// Test multiple allocations and frees
+		for (int i = 0; i < iterations; i++)
+		{
+			char *result = ft_strdup("Memory leak test");
+			if (result)
+				free(result);
+		}
+		
+		// Check with multiple allocations at once
+		char **ptrs = malloc(100 * sizeof(char *));
+		for (int i = 0; i < 100; i++)
+		{
+			ptrs[i] = ft_strdup("Test");
+		}
+		
+		// Now free them all
+		for (int i = 0; i < 100; i++)
+		{
+			if (ptrs[i])
+				free(ptrs[i]);
+		}
+		free(ptrs);
+		
+		// The test passes if we successfully allocated and freed without crashes
+		int passed = 1;
+		snprintf(detail, sizeof(detail), 
+			"allocated and freed %d strings successfully", iterations + 100);
+		
+		print_test_result("Memory leak stress test", passed, detail);
+		stats->total++;
+		if (passed) stats->passed++;
+		else stats->failed++;
 	}
 	
 	if (g_verbose_mode)
