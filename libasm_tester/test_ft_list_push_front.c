@@ -1,5 +1,4 @@
 #include "libtest.h"
-#include "memory_tracker.h"
 
 // Weak symbol sentinel - we can't return this from void function, so we'll check list state
 extern void ft_list_push_front(t_list **begin_list, void *data);
