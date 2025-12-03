@@ -6,6 +6,12 @@ libasm_tester
 # Cache files
 .libasm_path
 
+# Valgrind logs
+valgrind_raw.log
+valgrind_summary.log
+valgrind.log
+valgrind.supp
+
 # Editor files
 .vscode/
 .DS_Store
