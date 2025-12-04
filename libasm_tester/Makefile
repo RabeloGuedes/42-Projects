@@ -17,6 +17,7 @@ SRCS = main.c \
        test_ft_atoi_base.c \
        test_ft_list_push_front.c \
        test_ft_list_size.c \
+       test_ft_list_sort.c \
        test_stubs.c \
        libasm_weak.c
 
