@@ -18,6 +18,7 @@ SRCS = main.c \
        test_ft_list_push_front.c \
        test_ft_list_size.c \
        test_ft_list_sort.c \
+       test_ft_list_remove_if.c \
        test_stubs.c \
        libasm_weak.c
 
